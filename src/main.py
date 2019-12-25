@@ -1,9 +1,6 @@
 import json
 import os
 
-import altair as alt
-import pandas as pd
-
 from api_calls import get_position_from_azure_maps, get_routes_from_azure_maps
 
 weeks_per_month = 4.38
@@ -94,7 +91,7 @@ if __name__ == "__main__":
         for agenda_point, times_per_week in typical_week.items():
             target_adresses = reference_locations[agenda_point]  # Lookup adresses
             nearby = (
-                True if agenda_point == "Cafe" else False
+                True if agenda_point in ["Cafe"] else False
             )  # Lookup some locations (cafes) near the origin
 
             route_times = [
@@ -113,22 +110,11 @@ if __name__ == "__main__":
         print(f"Total time per month for '{origin}': {total_travel_time:3.1f} hours")
         result[origin]["total time"] = total_travel_time
 
+    with open("data/result.json", "w") as fh:
+        json.dump(result, fh, indent=2)
+
     # SAVE CACHE
     with open("data/positions_cache.json", "w") as fh:
         json.dump(positions_cache, fh, indent=2)
     with open("data/route_cache.json", "w") as fh:
         json.dump(route_cache, fh, indent=2)
-
-    # DATA VISUALIZATION
-    df = pd.DataFrame(result).T
-    df = df.reset_index().rename(columns={"index": "location"})
-
-    # Plot total time
-    alt.Chart(df).mark_bar().encode(y="location", x="total time").save(
-        "data/total_time.html"
-    )
-
-    # Plot time per month per type of travel
-    alt.Chart(df.drop("total time", axis=1).melt(id_vars="location")).mark_bar().encode(
-        y="location", x="sum(value)", color="variable"
-    ).save("data/monthly_split.html")
