@@ -1,0 +1,22 @@
+{
+  "Work": ["Axel Springer Platz Hamburg"],
+  "Gym": [
+    "Elbgym Innenstadt, Gorch-Fock-Wall 3, 20354 Hamburg",
+    "Elbgym Stadthöfe",
+    "Elbgym Alsterufer",
+    "Elbgym Eppendorf, Straßenbahnring 8, 20251 Hamburg"
+  ],
+  "Clubs": ["Reeperbahn", "Zoe Bar Hamburg", "Übel und Gefährlich, Hamburg"],
+  "Buddy_R": ["Neue Mitte Altona, Hamburg"],
+  "Buddy_I": ["Glasbläserhöfe Bergedorf"],
+  "Buddy_M": ["Niendorf Nord, Hamburg"],
+  "Airport": ["Airport Hamburg Terminal 1"],
+  "Train": ["Hamburg Hauptbahnhof", "Bahnhof Altona", "Dammtor Hamburg"],
+  "Coffee": [
+    "Coffee Fellows",
+    "Balzac",
+    "Starbucks",
+    "Campus Suite",
+    "Joe and the Juice"
+  ]
+}
