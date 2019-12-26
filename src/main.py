@@ -3,32 +3,30 @@ import os
 
 from api_calls import get_position_from_azure_maps, get_routes_from_azure_maps
 
+from statistics import mean
+
 weeks_per_month = 4.38
 
-
-def get_route_time(address_line_1, address_line_2, nearby=False):
+def get_route_time(address_line_1, address_line_2, ambiguous=False, max_distance=None):
     global route_cache
 
-    origin_position = get_position(address_line_1)
+    if max_distance:
+        ambiguous = True
 
-    if nearby:
-        lat, lon = origin_position.split(",")
-        destination_position = get_position_from_azure_maps(
-            address_line_2, lat=lat, lon=lon.strip()
-        )
-    else:
-        destination_position = get_position(address_line_2)
+    origin_lat, origin_lon, metro_id = get_position(address_line_1)
 
-    if origin_position == destination_position:
+    destination_lat, destination_lon, destination_metro_id = get_position(
+        address_line_2, lat=origin_lat, lon=origin_lon, radius=max_distance, metro_id=metro_id, ambiguous=ambiguous)
+    
+    if origin_lat == destination_lat and origin_lon == origin_lon:
         return 0
 
     try:
-        # Try to find cached values
         potential_routes = route_cache[address_line_1][address_line_2]
     except KeyError:
-        # Query from Azure maps
+        print(f"parsing route from '{address_line_1}' to '{address_line_2}'")
         potential_routes = get_routes_from_azure_maps(
-            origin_position, destination_position
+            origin_lat, origin_lon, destination_lat, destination_lon
         )
         if not potential_routes:
             return False
@@ -43,40 +41,78 @@ def get_route_time(address_line_1, address_line_2, nearby=False):
     return shortest_trip
 
 
-def get_position(address_line):
+def get_position(address_line, lat=None, lon=None, metro_id=None, radius=None, ambiguous=False):
     global positions_cache
 
-    if address_line in positions_cache:
+    if not ambiguous and address_line in positions_cache:
         return positions_cache[address_line]
 
-    position = get_position_from_azure_maps(address_line)
+    lat, lon, metro_id = get_position_from_azure_maps(address_line, lat, lon, metro_id, radius) # lat, lon, metro_id
 
-    positions_cache[address_line] = position
-    return position
+    if not ambiguous:
+        positions_cache[address_line] = lat, lon, metro_id
 
+    return lat, lon, metro_id
+
+
+def get_shortest_travel_time(origin, appointment_details, fallback_minutes=30):
+    destination_addresses = appointment_details["addresses"]
+    take_all = appointment_details.get("take_all", False)
+    ambiguous_locations = appointment_details.get("ambiguous_locations", False)
+
+    travel_times = [get_route_time(address_line_1=origin,address_line_2=target_adress,ambiguous=ambiguous_locations) for target_adress in destination_addresses]
+    
+    try:
+        if take_all:
+            return mean(travel_times)
+        else:
+            return min(travel_times)
+    except Exception as e:
+        print(e)
+        print(f"Could find a route from {origin} to {destination_addresses}. Estimating a {fallback_minutes} Minute trip.")
+        travel_time = fallback_minutes*60 # Fallback 30 minutes if no address was found.
+    return travel_time
+
+
+def estimate_traveltime_for_address(origin, typical_week):
+    traveltimes = {}
+    total_travel_time = 0
+
+    for appointment, appointment_details in typical_week.items():
+        times_per_week = appointment_details["times_per_week"]
+
+        travel_time = get_shortest_travel_time(origin, appointment_details)
+
+        travel_time_per_month = 2 * times_per_week * travel_time * weeks_per_month / 3600
+        total_travel_time += travel_time_per_month
+        traveltimes[appointment] = travel_time_per_month
+
+    print(f"Total time per month for '{origin}': {total_travel_time:3.1f} hours")
+    traveltimes["total time"] = total_travel_time
+    return traveltimes
 
 if __name__ == "__main__":
     os.makedirs("data", exist_ok=True)
+    os.makedirs("data/cache", exist_ok=True)
+    os.makedirs("data/viz", exist_ok=True)
+    
     # LOAD CONFIGURATION
 
     with open("data/potential_addresses.json", "rb") as fh:
         potential_addresses = json.load(fh)
-
-    with open("data/reference_locations.json", "rb") as fh:
-        reference_locations = json.load(fh)
 
     with open("data/typical_week.json", "rb") as fh:
         typical_week = json.load(fh)
 
     # LOADED CACHED LOCATIONS
     try:
-        with open("data/positions_cache.json", "r") as fh:
+        with open("data/cache/positions_cache.json", "r") as fh:
             positions_cache = json.load(fh)
     except FileNotFoundError:
         positions_cache = {}
 
     try:
-        with open("data/route_cache.json", "r") as fh:
+        with open("data/cache/route_cache.json", "r") as fh:
             route_cache = json.load(fh)
     except FileNotFoundError:
         route_cache = {}
@@ -84,37 +120,13 @@ if __name__ == "__main__":
     # PARSE
     result = {}
     for origin in potential_addresses:
-        # Initiate result entry
-        result[origin] = {}
-        total_travel_time = 0
-
-        for agenda_point, times_per_week in typical_week.items():
-            target_adresses = reference_locations[agenda_point]  # Lookup adresses
-            nearby = (
-                True if agenda_point in ["Cafe"] else False
-            )  # Lookup some locations (cafes) near the origin
-
-            route_times = [
-                get_route_time(origin, target_adress, nearby)
-                for target_adress in target_adresses
-            ]
-            route_times = [
-                route_time for route_time in route_times if route_time
-            ]  # Drop empty entries
-            travel_time = min(route_times) if len(route_times) > 0 else 1200
-            travel_time_per_month = (
-                2 * times_per_week * travel_time * weeks_per_month / 3600
-            )
-            total_travel_time += travel_time_per_month
-            result[origin][agenda_point] = travel_time_per_month
-        print(f"Total time per month for '{origin}': {total_travel_time:3.1f} hours")
-        result[origin]["total time"] = total_travel_time
+        result[origin] = estimate_traveltime_for_address(origin, typical_week)
 
     with open("data/result.json", "w") as fh:
         json.dump(result, fh, indent=2)
 
     # SAVE CACHE
-    with open("data/positions_cache.json", "w") as fh:
+    with open("data/cache/positions_cache.json", "w") as fh:
         json.dump(positions_cache, fh, indent=2)
-    with open("data/route_cache.json", "w") as fh:
+    with open("data/cache/route_cache.json", "w") as fh:
         json.dump(route_cache, fh, indent=2)
