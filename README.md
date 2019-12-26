@@ -1,9 +1,9 @@
 # Communite optimization
 ## Description
 
-Ever wondered *where's the best place to live* within a city?
+Ever wondered **where's the best place to live** within a city?
 
-This project won't give you a perfect answer, but it can tell you how you would *reduce commute and travel time* given some addresses.
+This project won't give you a perfect answer, but it can tell you how you would **reduce commute and travel time** living at hypothetical addresses.
 
 Enter addresses you would like to live at, places (work, gym, friends, cafes, ...) you regularly visit and a typical schedule to calculate your monthly travel using Azure Maps.
 
