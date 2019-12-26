@@ -101,9 +101,6 @@ if __name__ == "__main__":
     with open("data/potential_addresses.json", "rb") as fh:
         potential_addresses = json.load(fh)
 
-    with open("data/reference_locations.json", "rb") as fh:
-        reference_locations = json.load(fh)
-
     with open("data/typical_week.json", "rb") as fh:
         typical_week = json.load(fh)
 
