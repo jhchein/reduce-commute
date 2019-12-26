@@ -3,27 +3,27 @@ import os
 
 from api_calls import get_position_from_azure_maps, get_routes_from_azure_maps
 
+from statistics import mean
+
 weeks_per_month = 4.38
 
-def get_route_time(address_line_1, address_line_2, nearby=False):
+def get_route_time(address_line_1, address_line_2, ambiguous=False, max_distance=None):
     global route_cache
+
+    if max_distance:
+        ambiguous = True
 
     origin_lat, origin_lon, metro_id = get_position(address_line_1)
 
-    nearby_lat = origin_lat if nearby else None
-    nearby_lon = origin_lon if nearby else None
-
-    destination_lat, destination_lon, destination_metro_id = get_position_from_azure_maps(
-        address_line_2, lat=nearby_lat, lon=nearby_lon, metro_id=metro_id)
-
+    destination_lat, destination_lon, destination_metro_id = get_position(
+        address_line_2, lat=origin_lat, lon=origin_lon, radius=max_distance, metro_id=metro_id, ambiguous=ambiguous)
+    
     if origin_lat == destination_lat and origin_lon == origin_lon:
         return 0
 
     try:
-        # Try to find cached values
         potential_routes = route_cache[address_line_1][address_line_2]
     except KeyError:
-        # Query from Azure maps
         print(f"parsing route from '{address_line_1}' to '{address_line_2}'")
         potential_routes = get_routes_from_azure_maps(
             origin_lat, origin_lon, destination_lat, destination_lon
@@ -41,28 +41,36 @@ def get_route_time(address_line_1, address_line_2, nearby=False):
     return shortest_trip
 
 
-def get_position(address_line):
+def get_position(address_line, lat=None, lon=None, metro_id=None, radius=None, ambiguous=False):
     global positions_cache
 
-    if address_line in positions_cache:
+    if not ambiguous and address_line in positions_cache:
         return positions_cache[address_line]
 
-    lat, lon, metro_id = get_position_from_azure_maps(address_line) # lat, lon, metro_id
+    lat, lon, metro_id = get_position_from_azure_maps(address_line, lat, lon, metro_id, radius) # lat, lon, metro_id
 
-    positions_cache[address_line] = lat, lon, metro_id
+    if not ambiguous:
+        positions_cache[address_line] = lat, lon, metro_id
+
     return lat, lon, metro_id
 
 
-def get_shortest_travel_time(origin, target_adresses, nearby):
+def get_shortest_travel_time(origin, appointment_details, fallback_minutes=30):
+    destination_addresses = appointment_details["addresses"]
+    take_all = appointment_details.get("take_all", False)
+    ambiguous_locations = appointment_details.get("ambiguous_locations", False)
+
+    travel_times = [get_route_time(address_line_1=origin,address_line_2=target_adress,ambiguous=ambiguous_locations) for target_adress in destination_addresses]
+    
     try:
-        travel_time = min([
-                get_route_time(origin, target_adress, nearby)
-                for target_adress in target_adresses
-            ])
+        if take_all:
+            return mean(travel_times)
+        else:
+            return min(travel_times)
     except Exception as e:
         print(e)
-        print(f"Could find a route from {origin} to {target_adresses}. Estimating 30 Minute trip.")
-        travel_time = 30*60 # Fallback 30 minutes if no address was found.
+        print(f"Could find a route from {origin} to {destination_addresses}. Estimating a {fallback_minutes} Minute trip.")
+        travel_time = fallback_minutes*60 # Fallback 30 minutes if no address was found.
     return travel_time
 
 
@@ -70,15 +78,18 @@ def estimate_traveltime_for_address(origin, typical_week):
     traveltimes = {}
     total_travel_time = 0
 
-    for appointment, times_per_week in typical_week.items():
-        nearby = True if appointment == "Coffee" else False
-        destinations = reference_locations[appointment]
-        travel_time = get_shortest_travel_time(origin, destinations, nearby)
+    for appointment, appointment_details in typical_week.items():
+        times_per_week = appointment_details["times_per_week"]
+
+        travel_time = get_shortest_travel_time(origin, appointment_details)
+
         travel_time_per_month = 2 * times_per_week * travel_time * weeks_per_month / 3600
         total_travel_time += travel_time_per_month
         traveltimes[appointment] = travel_time_per_month
+
     print(f"Total time per month for '{origin}': {total_travel_time:3.1f} hours")
     traveltimes["total time"] = total_travel_time
+    return traveltimes
 
 if __name__ == "__main__":
     os.makedirs("data", exist_ok=True)
