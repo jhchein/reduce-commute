@@ -97,7 +97,6 @@ if __name__ == "__main__":
     os.makedirs("data/viz", exist_ok=True)
     
     # LOAD CONFIGURATION
-
     with open("data/potential_addresses.json", "rb") as fh:
         potential_addresses = json.load(fh)
 
