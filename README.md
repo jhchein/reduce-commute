@@ -17,6 +17,10 @@ Enter addresses you would like to live at, places (work, gym, friends, cafes, ..
 * Enter a few addresses in 'data/potential_addresses.json'.
 * Enter your typical weekly schedule in 'data/typical_week.json'
 
+## Running the program
+* Run src/main.py after you did the preparations. 
+* Run src/visualize.py to visualize; results are stored in data/viz/ as html files.
+
 ### Some hints for typical_week.json
 * Use exact locations, ideally the exact address incl. ZIP code and city.
 * Some places like 'Starbucks' are ambiguous and should be flagged accordingly (see typical_week.json) so you find the nearest starbucks.
