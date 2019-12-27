@@ -36,3 +36,5 @@ I want to add a max. search radius for some searches.
 I want to add more generic search (nearby cafes with 3+ stars).
 
 There's a 'bug', that currently all trips are calculated for the January 6th 2020, 8pm UTC. I want to allow the user to set specific times.
+
+The environment should be slimmed down.
