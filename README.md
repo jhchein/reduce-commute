@@ -31,6 +31,8 @@ Enter addresses you would like to live at, places (work, gym, friends, cafes, ..
 ## Comments and further improvements
 I ignore the means of travel (e.g. you might not want to ride a bike during winter) and number of 'legs' (sections) per route (a 20 minute non-stop trip might be preferrable to 15 minute traveling with 2 stops).
 
+A grid search of a city and heatmap visualization would be really nice.
+
 I want to add a max. search radius for some searches.
 
 I want to add more generic search (nearby cafes with 3+ stars).
