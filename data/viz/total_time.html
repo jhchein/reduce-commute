@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .error {
+        color: red;
+    }
+  </style>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-lite@4.0.0"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm//vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+    (function(vegaEmbed) {
+      var spec = {"config": {"view": {"continuousWidth": 400, "continuousHeight": 300}}, "data": {"name": "data-f8055197d8afc38cd53eccfa45a403d8"}, "mark": "bar", "encoding": {"x": {"type": "quantitative", "field": "total time"}, "y": {"type": "nominal", "field": "location"}}, "$schema": "https://vega.github.io/schema/vega-lite/v4.0.0.json", "datasets": {"data-f8055197d8afc38cd53eccfa45a403d8": [{"location": "Neue Mitte Altona, Hamburg", "Work": 11.485333333333333, "Gym": 6.9204, "Buddy_a": 0.0, "Buddy_b": 3.3117666666666667, "Buddy_c": 6.6065, "Airport": 7.711233333333333, "Train": 0.059008333333333336, "Coffee": 1.3991666666666667, "Clubs": 2.725982222222222, "total time": 40.219390555555556}, {"location": "Ottensen, Hamburg", "Work": 16.546666666666667, "Gym": 9.8039, "Buddy_a": 1.7592999999999999, "Buddy_b": 3.783833333333333, "Buddy_c": 6.7792666666666666, "Airport": 8.7746, "Train": 0.312075, "Coffee": 2.8104999999999998, "Clubs": 3.1276444444444444, "total time": 53.69778611111111}, {"location": "Wandsbek, Hamburg", "Work": 25.720333333333333, "Gym": 14.0963, "Buddy_a": 10.33315, "Buddy_b": 4.023516666666667, "Buddy_c": 9.5046, "Airport": 6.151466666666666, "Train": 1.0499833333333333, "Coffee": 18.6515, "Clubs": 5.490897777777778, "total time": 95.02174777777776}, {"location": "Pinneberg", "Work": 20.1845, "Gym": 10.3003, "Buddy_a": 4.8472, "Buddy_b": 4.932366666666667, "Buddy_c": 6.922833333333333, "Airport": 8.925466666666667, "Train": 0.7695416666666667, "Coffee": 0.0, "Clubs": 5.306613333333334, "total time": 62.18882166666667}, {"location": "Niendorf Nord, Hamburg", "Work": 25.172833333333333, "Gym": 14.9139, "Buddy_a": 9.30385, "Buddy_b": 5.101483333333333, "Buddy_c": 0.0, "Airport": 3.611066666666667, "Train": 1.1412333333333333, "Coffee": 18.7245, "Clubs": 5.786142222222223, "total time": 83.7550088888889}, {"location": "Glasbl\u00e4serh\u00f6fe, Bergedorf", "Work": 23.53033333333333, "Gym": 13.483099999999999, "Buddy_a": 10.3879, "Buddy_b": 0.0, "Buddy_c": 11.3004, "Airport": 9.407266666666665, "Train": 0.9374416666666666, "Coffee": 0.0, "Clubs": 5.7647288888888895, "total time": 74.81117055555558}, {"location": "Winterhude", "Work": 22.143333333333334, "Gym": 11.4683, "Buddy_a": 7.46425, "Buddy_b": 3.9687666666666663, "Buddy_c": 5.156233333333333, "Airport": 2.7448, "Train": 0.9404833333333332, "Coffee": 6.3145, "Clubs": 4.814755555555556, "total time": 65.01542222222221}, {"location": "Stadth\u00f6fe, Hamburg", "Work": 1.6059999999999999, "Gym": 1.8031, "Buddy_a": 3.96755, "Buddy_b": 2.126733333333333, "Buddy_c": 4.8837, "Airport": 5.769433333333333, "Train": 0.184325, "Coffee": 0.5840000000000001, "Clubs": 2.1471733333333334, "total time": 23.072015}, {"location": "Hafen City, Hamburg", "Work": 4.209666666666666, "Gym": 1.5184, "Buddy_a": 4.0734, "Buddy_b": 2.3566833333333332, "Buddy_c": 5.930033333333333, "Airport": 6.806033333333334, "Train": 0.33215, "Coffee": 1.6789999999999998, "Clubs": 2.3859644444444443, "total time": 29.291331111111106}, {"location": "Reinbek", "Work": 33.92066666666666, "Gym": 19.717299999999998, "Buddy_a": 13.17285, "Buddy_b": 1.6644, "Buddy_c": 11.397733333333333, "Airport": 9.5046, "Train": 1.4569583333333334, "Coffee": 0.0, "Clubs": 7.195528888888889, "total time": 98.0300372222222}, {"location": "Rotherbaum, Hamburg", "Work": 7.896166666666667, "Gym": 2.9273, "Buddy_a": 5.12095, "Buddy_b": 2.72655, "Buddy_c": 6.0225, "Airport": 5.287633333333333, "Train": 0.20135833333333333, "Coffee": 0.0, "Clubs": 2.8875555555555557, "total time": 33.07001388888889}, {"location": "Stade", "Work": 52.76683333333334, "Gym": 31.025, "Buddy_a": 18.235400000000002, "Buddy_b": 7.310949999999999, "Buddy_c": 14.772766666666666, "Airport": 15.368933333333333, "Train": 1.4411416666666665, "Coffee": 0.0, "Clubs": 8.184435555555556, "total time": 149.10546055555554}]}};
+      var embedOpt = {"mode": "vega-lite"};
+
+      function showError(el, error){
+          el.innerHTML = ('<div class="error" style="color:red;">'
+                          + '<p>JavaScript Error: ' + error.message + '</p>'
+                          + "<p>This usually means there's a typo in your chart specification. "
+                          + "See the javascript console for the full traceback.</p>"
+                          + '</div>');
+          throw error;
+      }
+      const el = document.getElementById('vis');
+      vegaEmbed("#vis", spec, embedOpt)
+        .catch(error => showError(el, error));
+    })(vegaEmbed);
+
+  </script>
+</body>
+</html>

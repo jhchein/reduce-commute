@@ -1,6 +1,5 @@
 *.pyc
 .vscode
 .env
-*.html
 result*.json
 *cache.json
