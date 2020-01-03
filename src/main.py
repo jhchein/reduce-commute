@@ -1,13 +1,12 @@
 import json
 import os
-
-from api_calls import get_position_from_azure_maps, get_mobility_routes_from_azure_maps, get_car_routes_from_azure_maps
-
+from collections import defaultdict
 from statistics import mean
 
-from caching import get_cache, save_cache, cache_defaultdict
-
-from collections import defaultdict
+from api_calls import (get_car_routes_from_azure_maps,
+                       get_mobility_routes_from_azure_maps,
+                       get_position_from_azure_maps)
+from caching import cache_defaultdict, get_cache, save_cache
 
 weeks_per_month = 4.38
 mean_parking_time = 4*60
