@@ -3,3 +3,4 @@
 .env
 result*.json
 data/cache/*
+data/viz/history/*
