@@ -8,12 +8,17 @@
     },
     "Gym": {
       "times_per_week": 3,
-      "addresses": ["Elbgym", "Fitness First"],
-      "ambiguous_locations": true,
+      "addresses": [
+        "Elbgym Gorch Fock Ring 3, Hamburg",
+        "Elbgym Stadthöfe, Bleichenbrücke 9",
+        "Elbgym Alsterufer Warburgstraße 1, Hamburg",
+        "Elbgym Straßenbahnring 8, Hamburg"
+      ],
+      "ambiguous_locations": false,
       "arrival_time": "2020-01-06T18:00:00Z"
     },
     "Buddy_a": {
-      "times_per_week": 1,
+      "times_per_week": 1.5,
       "addresses": ["Neue Mitte Altona"],
       "arrival_time": "2020-01-06T19:00:00Z"
     },
@@ -42,13 +47,7 @@
     },
     "Coffee": {
       "times_per_week": 2,
-      "addresses": [
-        "Coffee Fellows",
-        "Balzac",
-        "Starbucks",
-        "Campus Suite",
-        "Joe & the Juice"
-      ],
+      "addresses": ["Coffee Fellows", "Balzac", "Campus Suite"],
       "ambiguous_locations": true
     },
     "Clubs": {
