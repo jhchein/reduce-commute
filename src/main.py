@@ -24,9 +24,15 @@ def get_car_route_time(address_line_1, address_line_2, max_distance =None, ambig
 
         origin_lat, origin_lon, metro_id = get_position(address_line_1)
 
+        if not origin_lat or not origin_lon:
+            return False
+
         destination_lat, destination_lon, destination_metro_id = get_position(
             address_line_2, lat=origin_lat, lon=origin_lon, radius=max_distance, metro_id=metro_id, ambiguous=ambiguous)
         
+        if not destination_lat or not destination_lon:
+            return False
+
         if origin_lat == destination_lat and origin_lon == origin_lon:
             return 0
 
@@ -89,7 +95,7 @@ def get_position(address_line, lat=None, lon=None, metro_id=None, radius=None, a
 
     lat, lon, metro_id = get_position_from_azure_maps(address_line, lat, lon, metro_id, radius) # lat, lon, metro_id
 
-    if not ambiguous:
+    if not ambiguous and lat and lon:
         cache["positions"][address_line] = lat, lon, metro_id
 
     return lat, lon, metro_id

@@ -41,8 +41,11 @@ def get_position_from_azure_maps(address_line, lat=None, lon=None, radius=None, 
     
     response = requests.request("GET", url, headers={}, data={})
     
-    position = json.loads(response.text.encode("utf-8"))["results"][0]["position"] # first result from query
-    
+    try:
+        position = json.loads(response.text.encode("utf-8"))["results"][0]["position"] # first result from query
+    except:
+        return False, False, False
+
     if not metro_id:
         metro_id = get_metro_id(position["lat"], position["lon"])
     
