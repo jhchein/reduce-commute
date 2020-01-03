@@ -1,47 +1,66 @@
 {
-  "Work": { "times_per_week": 5, "addresses": ["Axel Springer Forum"] },
-  "Gym": {
-    "times_per_week": 3,
-    "addresses": ["Elbgym", "Fitness First"],
-    "ambiguous_locations": true
-  },
-  "Buddy_a": { "times_per_week": 1.5, "addresses": ["Neue Mitte Altona"] },
-  "Buddy_b": {
-    "times_per_week": 0.5,
-    "addresses": ["Glasbläserhofe Bergedorf"]
-  },
-  "Buddy_c": { "times_per_week": 1, "addresses": ["Niendorf Nord"] },
-  "Airport": {
-    "times_per_week": 1,
-    "addresses": ["Terminal 1 Hamburg Airport"]
-  },
-  "Train": {
-    "times_per_week": 0.25,
-    "addresses": [
-      "Hamburg Hauptbahnhof",
-      "Bahnhof Hamburg Altona",
-      "Bahnhof Dammtor",
-      "Bahnhof Hamburg Harburg"
-    ]
-  },
-  "Coffee": {
-    "times_per_week": 5,
-    "addresses": [
-      "Coffee Fellows",
-      "Balzac",
-      "Starbucks",
-      "Campus Suite",
-      "Joe & the Juice"
-    ],
-    "ambiguous_locations": true
-  },
-  "Clubs": {
-    "times_per_week": 0.8,
-    "addresses": [
-      "Reeperbahn",
-      "Zoe Bar Hamburg",
-      "Übel und Gefährlich, Hamburg"
-    ],
-    "take_all": true
+  "car": true,
+  "arrival_time": "2020-01-06T08:00:00Z",
+  "locations": {
+    "Work": {
+      "times_per_week": 3,
+      "addresses": ["Axel Springer Forum"]
+    },
+    "Gym": {
+      "times_per_week": 3,
+      "addresses": ["Elbgym", "Fitness First"],
+      "ambiguous_locations": true,
+      "arrival_time": "2020-01-06T18:00:00Z"
+    },
+    "Buddy_a": {
+      "times_per_week": 1,
+      "addresses": ["Neue Mitte Altona"],
+      "arrival_time": "2020-01-06T19:00:00Z"
+    },
+    "Buddy_b": {
+      "times_per_week": 0.75,
+      "addresses": ["Glasbläserhofe Bergedorf"],
+      "arrival_time": "2020-01-06T21:00:00Z"
+    },
+    "Buddy_c": {
+      "times_per_week": 1,
+      "addresses": ["Niendorf Nord"],
+      "arrival_time": "2020-01-06T21:00:00Z"
+    },
+    "Airport": {
+      "times_per_week": 0.5,
+      "addresses": ["Terminal 1 Hamburg Airport"]
+    },
+    "Train": {
+      "times_per_week": 0.2,
+      "addresses": [
+        "Hamburg Hauptbahnhof",
+        "Bahnhof Hamburg Altona",
+        "Bahnhof Dammtor",
+        "Bahnhof Hamburg Harburg"
+      ]
+    },
+    "Coffee": {
+      "times_per_week": 2,
+      "addresses": [
+        "Coffee Fellows",
+        "Balzac",
+        "Starbucks",
+        "Campus Suite",
+        "Joe & the Juice"
+      ],
+      "ambiguous_locations": true
+    },
+    "Clubs": {
+      "times_per_week": 0.5,
+      "addresses": [
+        "Reeperbahn",
+        "Zoe Bar Hamburg",
+        "Übel und Gefährlich, Hamburg"
+      ],
+      "take_all": true,
+      "arrival_time": "2020-01-06T22:00:00Z",
+      "car": false
+    }
   }
 }

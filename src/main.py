@@ -1,39 +1,78 @@
 import json
 import os
 
-from api_calls import get_position_from_azure_maps, get_routes_from_azure_maps
+from api_calls import get_position_from_azure_maps, get_mobility_routes_from_azure_maps, get_car_routes_from_azure_maps
 
 from statistics import mean
 
 weeks_per_month = 4.38
+mean_parking_time = 4*60
 
-def get_route_time(address_line_1, address_line_2, ambiguous=False, max_distance=None):
-    global route_cache
+def get_car_route_time(address_line_1, address_line_2, max_distance =None, ambiguous=False, arrival_time = "2020-01-06T08:00:00Z"):
+    global car_route_cache
 
-    if max_distance:
-        ambiguous = True
-
-    origin_lat, origin_lon, metro_id = get_position(address_line_1)
-
-    destination_lat, destination_lon, destination_metro_id = get_position(
-        address_line_2, lat=origin_lat, lon=origin_lon, radius=max_distance, metro_id=metro_id, ambiguous=ambiguous)
     
-    if origin_lat == destination_lat and origin_lon == origin_lon:
-        return 0
+    try:
+        potential_routes = car_route_cache[address_line_1][address_line_2][arrival_time]
+    except KeyError:
+
+        if max_distance:
+            ambiguous = True
+
+        origin_lat, origin_lon, metro_id = get_position(address_line_1)
+
+        destination_lat, destination_lon, destination_metro_id = get_position(
+            address_line_2, lat=origin_lat, lon=origin_lon, radius=max_distance, metro_id=metro_id, ambiguous=ambiguous)
+        
+        if origin_lat == destination_lat and origin_lon == origin_lon:
+            return 0
+
+        print(f"parsing car route from '{address_line_1}' to '{address_line_2}'")
+        potential_routes = get_car_routes_from_azure_maps(
+            origin_lat, origin_lon, destination_lat, destination_lon, arrive_at_time=arrival_time
+        )
+
+        if not potential_routes:
+            return False
+
+        # Cache route
+        car_route_cache[address_line_1] = car_route_cache.get(address_line_1, {})
+        car_route_cache[address_line_1][address_line_2] = car_route_cache[address_line_1].get(address_line_2, {})
+        car_route_cache[address_line_1][address_line_2][arrival_time] = potential_routes
+
+    shortest_trip = min(
+        [int(route["historicTrafficTravelTimeInSeconds"]) for route in potential_routes]
+    )
+    return shortest_trip + mean_parking_time
+
+def get_urban_mobility_route_time(address_line_1, address_line_2, ambiguous=False, max_distance=None, arrival_time = "2020-01-06T08:00:00Z"):
+    global urban_mobility_route_cache
 
     try:
-        potential_routes = route_cache[address_line_1][address_line_2]
+        potential_routes = urban_mobility_route_cache[address_line_1][address_line_2]
     except KeyError:
+
+        if max_distance:
+            ambiguous = True
+
+        origin_lat, origin_lon, metro_id = get_position(address_line_1)
+
+        destination_lat, destination_lon, destination_metro_id = get_position(
+            address_line_2, lat=origin_lat, lon=origin_lon, radius=max_distance, metro_id=metro_id, ambiguous=ambiguous)
+        
+        if origin_lat == destination_lat and origin_lon == origin_lon:
+            return 0
+    
         print(f"parsing route from '{address_line_1}' to '{address_line_2}'")
-        potential_routes = get_routes_from_azure_maps(
-            origin_lat, origin_lon, destination_lat, destination_lon
+        potential_routes = get_mobility_routes_from_azure_maps(
+            origin_lat, origin_lon, destination_lat, destination_lon, arrival_time=arrival_time
         )
         if not potential_routes:
             return False
 
         # Cache route
-        route_cache[address_line_1] = route_cache.get(address_line_1, {})
-        route_cache[address_line_1][address_line_2] = potential_routes
+        urban_mobility_route_cache[address_line_1] = urban_mobility_route_cache.get(address_line_1, {})
+        urban_mobility_route_cache[address_line_1][address_line_2] = potential_routes
 
     shortest_trip = min(
         [int(route["travelTimeInSeconds"]) for route in potential_routes]
@@ -55,13 +94,24 @@ def get_position(address_line, lat=None, lon=None, metro_id=None, radius=None, a
     return lat, lon, metro_id
 
 
-def get_shortest_travel_time(origin, appointment_details, fallback_minutes=30):
+def get_shortest_travel_time(origin, appointment_details, fallback_minutes=30, arrival_time=None, car=False, urban_mobility=True):
     destination_addresses = appointment_details["addresses"]
     take_all = appointment_details.get("take_all", False)
-    ambiguous_locations = appointment_details.get("ambiguous_locations", False)
 
-    travel_times = [get_route_time(address_line_1=origin,address_line_2=target_adress,ambiguous=ambiguous_locations) for target_adress in destination_addresses]
+    if not take_all and origin in destination_addresses:
+        return 0
+
+    ambiguous_locations = appointment_details.get("ambiguous_locations", False)
+    arrival_time = appointment_details.get("arrival_time", arrival_time)
+
+    travel_times = []
+    if urban_mobility:
+        travel_times.extend([get_urban_mobility_route_time(address_line_1=origin,address_line_2=target_adress,ambiguous=ambiguous_locations, arrival_time=arrival_time) for target_adress in destination_addresses])
+    if car:
+        travel_times.extend([get_car_route_time(address_line_1=origin,address_line_2=target_adress,ambiguous=ambiguous_locations, arrival_time=arrival_time) for target_adress in destination_addresses])
     
+    travel_times = [travel_time for travel_time in travel_times if travel_time is not False]
+
     try:
         if take_all:
             return mean(travel_times)
@@ -77,11 +127,14 @@ def get_shortest_travel_time(origin, appointment_details, fallback_minutes=30):
 def estimate_traveltime_for_address(origin, typical_week):
     traveltimes = {}
     total_travel_time = 0
+    car = typical_week.get("car", False)
+    arrival_time = typical_week.get("arrival_time", None)
 
-    for appointment, appointment_details in typical_week.items():
+    for appointment, appointment_details in typical_week["locations"].items():
         times_per_week = appointment_details["times_per_week"]
+        car = appointment_details.get("car", typical_week.get("car", False))
 
-        travel_time = get_shortest_travel_time(origin, appointment_details)
+        travel_time = get_shortest_travel_time(origin, appointment_details, arrival_time=arrival_time, car=car)
 
         travel_time_per_month = 2 * times_per_week * travel_time * weeks_per_month / 3600
         total_travel_time += travel_time_per_month
@@ -99,7 +152,6 @@ if __name__ == "__main__":
     # LOAD CONFIGURATION
     with open("data/potential_addresses.json", "rb") as fh:
         potential_addresses = json.load(fh)
-
     with open("data/typical_week.json", "rb") as fh:
         typical_week = json.load(fh)
 
@@ -111,10 +163,16 @@ if __name__ == "__main__":
         positions_cache = {}
 
     try:
-        with open("data/cache/route_cache.json", "r") as fh:
-            route_cache = json.load(fh)
+        with open("data/cache/urban_mobility_route_cache.json", "r") as fh:
+            urban_mobility_route_cache = json.load(fh)
     except FileNotFoundError:
-        route_cache = {}
+        urban_mobility_route_cache = {}
+
+    try:
+        with open("data/cache/car_route_cache.json", "r") as fh:
+            car_route_cache = json.load(fh)
+    except FileNotFoundError:
+        car_route_cache = {}
 
     # PARSE
     result = {}
@@ -125,7 +183,12 @@ if __name__ == "__main__":
         json.dump(result, fh, indent=2)
 
     # SAVE CACHE
+    print("saving positions cache")
     with open("data/cache/positions_cache.json", "w") as fh:
         json.dump(positions_cache, fh, indent=2)
-    with open("data/cache/route_cache.json", "w") as fh:
-        json.dump(route_cache, fh, indent=2)
+    print("saving public transport cache")
+    with open("data/cache/urban_mobility_route_cache.json", "w") as fh:
+        json.dump(urban_mobility_route_cache, fh, indent=2)
+    print("saving car routes cache")
+    with open("data/cache/car_route_cache.json", "w") as fh:
+        json.dump(car_route_cache, fh, indent=2)
